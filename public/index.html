@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GrosirKu — Manajemen Stok</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <!-- ═══ LOGIN SCREEN ═══════════════════════════════════════════════════════ -->
+    <div id="loginScreen" class="auth-screen">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <span class="logo-icon">📦</span>
+          <h1>GrosirKu</h1>
+          <p>Sistem Manajemen Stok</p>
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" placeholder="admin" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="handleLogin()">
+          Masuk →
+        </button>
+        <div id="loginError" class="alert alert-error hidden"></div>
+      </div>
+    </div>
+
+    <!-- ═══ REGISTER SCREEN ══════════════════════════════════════════════════ -->
+    <div id="registerScreen" class="auth-screen hidden">
+      <div class="auth-card">
+        <div class="auth-logo">
+          <span class="logo-icon">📦</span>
+          <h1>Buat Akun Baru</h1>
+        </div>
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" id="regName" placeholder="Budi Santoso" />
+        </div>
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="regUsername" placeholder="budi_staff" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="regPassword" placeholder="••••••••" />
+        </div>
+        <div class="form-group">
+          <label>Peran</label>
+          <select id="regRole">
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="handleRegister()">
+          Buat Akun &rarr;
+        </button>
+        <div id="registerMsg" class="alert hidden"></div>
+      </div>
+    </div>
+
+    <!-- ═══ MAIN APP ══════════════════════════════════════════════════════════ -->
+    <div id="appScreen" class="hidden">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-logo">
+          <span>📦</span>
+          <span>GrosirKu</span>
+        </div>
+        <nav class="sidebar-nav">
+          <a
+            class="nav-item active"
+            onclick="showPage('dashboard')"
+            data-page="dashboard"
+            data-role="admin"
+          >
+            <span>⬛</span> Dashboard
+          </a>
+          <a
+            class="nav-item"
+            onclick="showPage('products')"
+            data-page="products"
+            data-role="admin"
+          >
+            <span>🗃️</span> Produk
+          </a>
+          <a
+            class="nav-item"
+            onclick="showPage('transactions')"
+            data-page="transactions"
+          >
+            <span>📊</span> Transaksi
+          </a>
+          <a
+            class="nav-item"
+            onclick="showPage('categories')"
+            data-page="categories"
+            data-role="admin"
+          >
+            <span>🏷️</span> Kategori
+          </a>
+        </nav>
+        <div class="sidebar-bottom">
+          <div data-role="admin" class="sidebar-add-user">
+            <button
+              class="btn btn-sm btn-primary btn-full"
+              onclick="showRegisterScreen()"
+            >
+              + Buat Akun
+            </button>
+          </div>
+          <div class="sidebar-user">
+            <div class="user-info">
+              <span id="sidebarUserName">—</span>
+              <span id="sidebarUserRole" class="badge"></span>
+            </div>
+            <button class="btn btn-sm btn-ghost" onclick="handleLogout()">
+              Keluar
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- ── Dashboard ──────────────────────────────────────────────────── -->
+        <section id="page-dashboard" class="page active">
+          <div class="page-header">
+            <h2>Dashboard</h2>
+            <span id="dashDate" class="text-muted"></span>
+          </div>
+
+          <div class="stat-grid" id="statGrid">
+            <div class="stat-card stat-blue">
+              <div class="stat-label">Total Produk</div>
+              <div class="stat-value" id="statTotal">—</div>
+            </div>
+            <div class="stat-card stat-green">
+              <div class="stat-label">Stok Normal</div>
+              <div class="stat-value" id="statAvailable">—</div>
+            </div>
+            <div class="stat-card stat-yellow">
+              <div class="stat-label">Stok Rendah</div>
+              <div class="stat-value" id="statLow">—</div>
+            </div>
+            <div class="stat-card stat-red">
+              <div class="stat-label">Habis</div>
+              <div class="stat-value" id="statOut">—</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>⚠️ Peringatan Stok Rendah</h3>
+            </div>
+            <div id="lowStockTable"></div>
+          </div>
+        </section>
+
+        <!-- ── Produk ──────────────────────────────────────────────────────── -->
+        <section id="page-products" class="page">
+          <div class="page-header">
+            <h2>Manajemen Produk</h2>
+            <button class="btn btn-primary" onclick="openModal('modalProduct')">
+              + Tambah Produk
+            </button>
+          </div>
+
+          <div class="toolbar">
+            <input
+              type="text"
+              id="searchProduct"
+              placeholder="🔍 Cari nama / SKU..."
+              oninput="loadProducts()"
+            />
+            <select id="filterCategory" onchange="loadProducts()">
+              <option value="">Semua Kategori</option>
+            </select>
+          </div>
+
+          <div class="card">
+            <div id="productTable"></div>
+            <div class="pagination" id="productPagination"></div>
+          </div>
+        </section>
+
+        <!-- ── Transaksi ──────────────────────────────────────────────────── -->
+        <section id="page-transactions" class="page">
+          <div class="page-header">
+            <h2>Riwayat Transaksi</h2>
+            <div class="btn-group">
+              <button class="btn btn-green" onclick="openModal('modalStockIn')">
+                📥 Stok Masuk
+              </button>
+              <button class="btn btn-red" onclick="openModal('modalStockOut')">
+                📤 Stok Keluar
+              </button>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <select id="filterTrxType" onchange="loadTransactions()">
+              <option value="">Semua Tipe</option>
+              <option value="in">Stok Masuk</option>
+              <option value="out">Stok Keluar</option>
+            </select>
+          </div>
+
+          <div class="card">
+            <div id="transactionTable"></div>
+            <div class="pagination" id="trxPagination"></div>
+          </div>
+        </section>
+
+        <!-- ── Kategori ───────────────────────────────────────────────────── -->
+        <section id="page-categories" class="page">
+          <div class="page-header">
+            <h2>Kategori Produk</h2>
+            <button
+              class="btn btn-primary"
+              onclick="openModal('modalCategory')"
+            >
+              + Tambah Kategori
+            </button>
+          </div>
+          <div class="card">
+            <div id="categoryTable"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ═══ MODALS ════════════════════════════════════════════════════════════ -->
+
+    <!-- Modal Tambah/Edit Produk -->
+    <div id="modalProduct" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modalProductTitle">Tambah Produk</h3>
+          <button class="modal-close" onclick="closeModal('modalProduct')">
+            ✕
+          </button>
+        </div>
+        <input type="hidden" id="productId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label>SKU *</label>
+            <input type="text" id="productSku" placeholder="MKN-000001" />
+          </div>
+          <div class="form-group">
+            <label>Satuan</label>
+            <input
+              type="text"
+              id="productUnit"
+              placeholder="pcs / kg / liter"
+              value="pcs"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nama Produk *</label>
+          <input type="text" id="productName" placeholder="Beras Premium 5kg" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Harga Jual (Rp)</label>
+            <input
+              type="number"
+              id="productPrice"
+              placeholder="50000"
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label>Harga Beli (Rp)</label>
+            <input
+              type="number"
+              id="productCostPrice"
+              placeholder="40000"
+              min="0"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stok Awal</label>
+            <input type="number" id="productStock" placeholder="0" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select id="productCategory">
+              <option value="">-- Pilih Kategori --</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Deskripsi</label>
+          <textarea
+            id="productDesc"
+            placeholder="Deskripsi produk..."
+          ></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modalProduct')">
+            Batal
+          </button>
+          <button class="btn btn-primary" onclick="saveProduct()">
+            Simpan
+          </button>
+        </div>
+        <div id="productFormMsg" class="alert hidden"></div>
+      </div>
+    </div>
+
+    <!-- Modal Stok Masuk -->
+    <div id="modalStockIn" class="modal-overlay hidden">
+      <div class="modal modal-sm">
+        <div class="modal-header modal-header-green">
+          <h3>📥 Stok Masuk</h3>
+          <button class="modal-close" onclick="closeModal('modalStockIn')">
+            ✕
+          </button>
+        </div>
+        <div class="form-group">
+          <label>Produk *</label>
+          <select id="inProductId">
+            <option value="">-- Pilih Produk --</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Jumlah *</label>
+            <input type="number" id="inQty" placeholder="0" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Harga Beli/Unit (Rp)</label>
+            <input type="number" id="inPrice" placeholder="0" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Catatan</label>
+          <input
+            type="text"
+            id="inNotes"
+            placeholder="Pembelian dari supplier..."
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modalStockIn')">
+            Batal
+          </button>
+          <button class="btn btn-green" onclick="submitStockIn()">
+            Konfirmasi Masuk
+          </button>
+        </div>
+        <div id="stockInMsg" class="alert hidden"></div>
+      </div>
+    </div>
+
+    <!-- Modal Stok Keluar -->
+    <div id="modalStockOut" class="modal-overlay hidden">
+      <div class="modal modal-sm">
+        <div class="modal-header modal-header-red">
+          <h3>📤 Stok Keluar</h3>
+          <button class="modal-close" onclick="closeModal('modalStockOut')">
+            ✕
+          </button>
+        </div>
+        <div class="form-group">
+          <label>Produk *</label>
+          <select id="outProductId">
+            <option value="">-- Pilih Produk --</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Jumlah *</label>
+            <input type="number" id="outQty" placeholder="0" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Harga Jual/Unit (Rp)</label>
+            <input type="number" id="outPrice" placeholder="0" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Catatan</label>
+          <input
+            type="text"
+            id="outNotes"
+            placeholder="Penjualan ke pelanggan..."
+          />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modalStockOut')">
+            Batal
+          </button>
+          <button class="btn btn-red" onclick="submitStockOut()">
+            Konfirmasi Keluar
+          </button>
+        </div>
+        <div id="stockOutMsg" class="alert hidden"></div>
+      </div>
+    </div>
+
+    <!-- Modal Kategori -->
+    <div id="modalCategory" class="modal-overlay hidden">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3 id="modalCategoryTitle">Tambah Kategori</h3>
+          <button class="modal-close" onclick="closeModal('modalCategory')">
+            ✕
+          </button>
+        </div>
+        <input type="hidden" id="categoryId" />
+        <div class="form-group">
+          <label>Nama Kategori *</label>
+          <input type="text" id="categoryName" placeholder="Makanan" />
+        </div>
+        <div class="form-group">
+          <label>Deskripsi</label>
+          <textarea
+            id="categoryDesc"
+            placeholder="Deskripsi kategori..."
+          ></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modalCategory')">
+            Batal
+          </button>
+          <button class="btn btn-primary" onclick="saveCategory()">
+            Simpan
+          </button>
+        </div>
+        <div id="categoryFormMsg" class="alert hidden"></div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="/js/script.js"></script>
+  </body>
+</html>
