@@ -1,6 +1,6 @@
 # Stock Management — Toko Grosir
 
-Aplikasi web manajemen stok berbasis Node.js + Express + PostgreSQL.
+Aplikasi website manajemen stok barang
 
 ---
 
